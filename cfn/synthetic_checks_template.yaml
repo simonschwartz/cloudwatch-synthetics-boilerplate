@@ -1,0 +1,69 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Synthetic Checks Stack
+
+Resources:
+  CloudWatchSyntheticsPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CloudWatchSyntheticsPolicy
+      PolicyDocument:
+        Statement:
+        - Resource:
+            - arn:aws:s3:::synthetics-*
+          Action:
+            - s3:PutObject
+            - s3:GetObject
+            - s3:GetObjectVersion
+            - s3:GetBucketLocation
+          Effect: Allow
+        - Resource: "*"
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Effect: Allow
+        - Resource: "*"
+          Action:
+            - s3:ListAllMyBuckets
+          Effect: Allow
+        - Resource: "*"
+          Action:
+            - cloudwatch:PutMetricData
+          Condition:
+            StringEquals:
+              'cloudwatch:namespace': 'CloudWatchSynthetics'
+          Effect: Allow
+      Roles:
+      - Ref: CloudWatchSyntheticsRole
+
+  CloudWatchSyntheticsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join [ -, [ !Ref 'AWS::Region', cloudwatch-synthetics-role ] ]
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+
+  SyntheticCheckExample:
+    Type: AWS::Synthetics::Canary
+    Properties:
+      Name: exampletest
+      ExecutionRoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/ap-southeast-2-cloudwatch-synthetics-role'
+      Code:
+        Handler: example-test.handler
+        S3Bucket: synthetics-tests
+        S3Key: artifact.zip
+      ArtifactS3Location: s3://synthetics-results
+      RuntimeVersion: syn-1.0
+      Schedule: {Expression: 'rate(2 minutes)', DurationInSeconds: 3600}
+      RunConfig: {TimeoutInSeconds: 60}
+      FailureRetentionPeriod: 30
+      SuccessRetentionPeriod: 30
+      StartCanaryAfterCreation: true

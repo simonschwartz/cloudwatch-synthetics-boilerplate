@@ -1,0 +1,26 @@
+{
+  "name": "cloudwatch-synthetics-boilerplate",
+  "version": "1.0.0",
+  "description": "",
+  "main": "tests.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "node ./scripts/compileArtifact",
+    "test:example-test": "node -e 'require(\"./tests/example-test\").handler()'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:simonschwartz/cloudwatch-synthetics-boilerplate.git"
+  },
+  "author": "Simon Schwartz",
+  "license": "ISC",
+  "devDependencies": {
+    "Synthetics": "file:syn-1.0/Synthetics",
+    "SyntheticsLogger": "file:syn-1.0/SyntheticsLogger",
+    "archiver": "^4.0.1",
+    "rimraf": "^3.0.2"
+  },
+  "dependencies": {}
+}
